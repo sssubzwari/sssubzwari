@@ -1,0 +1,20 @@
+
+body {
+    color: rgba(0, 0, 0, 0.95);
+}
+
+.timeline-event-content .date {
+    font-weight: bold;
+    font-size: 1.8em;
+    width: 100%
+}
+
+
+.timeline-event-content .media p {
+  width: 100%;
+}
+
+.timeline-series dt a {
+    color: rgba(78, 78, 78, 0.8);
+    cursor: pointer;
+}

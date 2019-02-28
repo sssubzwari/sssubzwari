@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    	<title>SEAS</title>
+        <link rel="stylesheet" href="css/timeliner-future.css" type="text/css" media="screen">
+        <link rel="stylesheet" href="css/style.css" type="text/css" media="screen">
+    </head>
+    <body>
+        <div class="container">
+            <h1>&nbsp;</h1>
+            <p class="lead">&nbsp;</p>
+
+            <div id="timeline" class="timeline-container">
+                <button class="timeline-toggle">+ expand all</button>
+                <br class="clear">
+            </div>
+        </div>
+
+    	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    	<script type="text/javascript" src="js/timeliner.js"></script>
+    	<script>
+    		$(document).ready(function() {
+                var SPREADSHEET_ID = "1bAaFpL-EN6xXOmpeDd50bPACLIlA2trmoWweGXX-rsk";
+                $.getJSON("https://spreadsheets.google.com/feeds/list/" + SPREADSHEET_ID + "/od6/public/values?alt=json", function(data) {
+                    var entries = data.feed.entry;
+                    var count = 0;
+                    var currentYear = 0;
+                    var currentWrapper = null;
+
+                    var generateTimelineBlock = function(data) {
+                        var dl = $("<dl>").attr("class", "timeline-series");
+                        var dt = $("<dt>").attr({
+                            "id": data.id,
+                            "class": "timeline-event"
+                        }).append($("<a>").text(data.headline));
+
+                        var dd = $("<dd>").attr({
+                            "id": data.id + "EX",
+                            "class": "timeline-event-content"
+                        });
+
+                        console.log(data);
+                        if ( data.media != "" ) {
+                            var media = $("<div>").attr({
+                                "class": "media"
+                            });
+
+                            var img = $("<img>").attr({
+                                "src": (data.mediathumbnail != "") ? data.mediathumbnail : data.media,
+                                "alt": data.mediacaption,
+                                "title": data.mediacaption,
+                            });
+
+                            var link = $("<a>").attr({
+                                "href": data.media,
+                                "target": "_blank"
+                            });
+
+                            media.append(link.append(img));
+
+                            if ( data.mediacaption != "" ) {
+                                var caption = $("<p>").text(data.mediacaption);
+                                media.append(caption);
+                            }
+
+                            if ( data.mediacredit != "" ) {
+                                var credits = $("<p>").text(data.mediacredit);
+                                media.append(credits);
+                            }
+
+                            dd.append(media)
+                        }
+
+                        if ( data.date != "" ) {
+                            dd.append($("<div>").attr({
+                                "class": "date"
+                            }).text(data.date));
+                        }
+
+                        dd.append($("<p>").text(data.text));
+
+                        dl.append($("<span>").attr("class", "tick tick-before"));
+
+                        dl.append(dt);
+
+                        dl.append($("<span>").attr("class", "tick tick-after"));
+
+                        dl.append(dd);
+
+
+                        return dl;
+                    };
+
+                    $(entries).each(function() {
+                        var id = this.id.$t;
+                        id = id.substring(id.lastIndexOf('/') + 1);
+
+                        var headline = this.gsx$headline.$t;
+                        var text = this.gsx$text.$t
+
+                        if ( count == 0 ) {
+                            // This is the header row
+                            $("h1").text(headline);
+                            $(".lead").text(text);
+                        } else {
+                            if ( currentYear != this.gsx$year.$t ) {
+                                currentYear = this.gsx$year.$t;
+
+                                // Append the wrapper
+                                currentWrapper = $("<div>").attr("class", "timeline-wrapper").attr("data-year", currentYear);
+                                $("#timeline").append(currentWrapper);
+
+                                // Append the Year into the currentWrapper
+                                $(currentWrapper).append("<h2 class=\"timeline-time\"><span>" + currentYear + "</span></h2>");
+                            }
+
+                            console.log(this);
+
+                            $(currentWrapper).append(generateTimelineBlock({
+                                id: id,
+                                headline: headline,
+                                text: text,
+                                date: this.gsx$displaydate.$t,
+                                media: this.gsx$media.$t,
+                                mediacredit: this.gsx$mediacredit.$t,
+                                mediacaption: this.gsx$mediacaption.$t,
+                                mediathumbnail: this.gsx$mediathumbnail.$t
+                            }));
+                        }
+                        count = count + 1;
+                    });
+
+                    $("#timeline").append('<button class="timeline-toggle">+ expand all</button>');
+                    $("#timeline").append('<br class="clear">');
+                    $.timeliner({
+                        timelineContainer:'#timeline',
+                    });
+
+                });
+            });
+    	</script>
+    </body>
+</html>
